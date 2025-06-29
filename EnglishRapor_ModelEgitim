@@ -1,0 +1,281 @@
+\documentclass[conference]{IEEEtran}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{placeins}
+\usepackage{subcaption}
+\usepackage{float}
+
+\lstset{
+    language=Python,
+    basicstyle=\ttfamily\small,
+    commentstyle=\color{gray},
+    showstringspaces=false,
+    breaklines=true,
+}
+
+\title{Çok Sınıflı Solunum Sesi Sınıflandırmasında Modern Derin Öğrenme Yöntemlerinin Karşılaştırılması}
+
+\author{
+    \IEEEauthorblockN{İbrahim Buğra San}
+    \IEEEauthorblockA{
+        Kocaeli Üniversitesi / Bilişim Sistemleri Mühendisliği\\
+        221307059\\
+        ibugrasan@gmail.com
+    }
+}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Bu çalışmada, astım, bronşit, krup, normal ve zatüre olmak üzere beş farklı solunum hastalığına ait ses verileriyle, modern derin öğrenme tabanlı ses sınıflandırma modellerinin (AST, Wav2Vec2, SEW, Hubert, Data2Vec) karşılaştırılması amaçlanmıştır. Projede veri toplama, temizleme, ön işleme, model eğitimi ve değerlendirme süreçleri detaylı olarak ele alınmıştır.
+\end{abstract}
+
+\section{Giriş}
+Bu çalışmada, beş farklı solunum hastalığına ait ses verileriyle, modern derin öğrenme tabanlı ses sınıflandırma modellerinin karşılaştırılması amaçlanmıştır. Projede veri toplama, temizleme, ön işleme, model eğitimi ve değerlendirme süreçleri gerçekleştirilmiştir.
+
+\section{Veri Toplama ve Temizleme}
+
+\subsection{Web Scraping ile Veri Toplama}
+Veriler, YouTube gibi çevrimiçi platformlardan Python ile otomatik olarak çekilmiştir. Her sınıf için 50 adet, toplamda 250 adet 5 saniyelik .wav formatında ses dosyası elde edilmiştir.
+
+\textbf{Kullanılan Koddan Parça:}
+\begin{lstlisting}
+with YoutubeDL(ydl_opts) as ydl:
+    info = ydl.extract_info(link, download=True)
+    downloaded_file = ydl.prepare_filename(info)
+    print(f"Hazırlanan dosya adı: {downloaded_file}")
+    
+    actual_file = find_downloaded_file(downloaded_file)
+\end{lstlisting}
+
+\subsection{Veri Temizleme ve Ön İşleme}
+\begin{itemize}
+    \item İndirilen ses dosyaları, sınıf isimlerine göre klasörlenmiştir.
+    \item Her dosya 5 saniyeye kırpılmıştır.
+    \item Tüm dosyalar mono ve 16kHz örnekleme oranına dönüştürülmüştür.
+    \item Ayrıca, MFCC öznitelikleri de çıkarılmış ve .npy olarak kaydedilmiştir.
+\end{itemize}
+
+\textbf{Veri Temizleme Sonrası/Öncesi Görselleştirme:}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.4\textwidth]{sinif_dagilimi.png}
+    \caption{Veri temizleme öncesi/sonrası örnek görselleştirme.}
+\end{figure}
+
+\section{Kullanılan Modeller}
+% ... (model açıklamaları aynı şekilde devam ediyor) ...
+
+\section{Deneysel Kurulum}
+\begin{itemize}
+    \item Her model için aynı eğitim, doğrulama ve test bölmeleri kullanıldı.
+    \item Eğitim parametreleri: batch size, epoch, learning rate, optimizer vs.
+    \item Tüm modellerde eğitim ve çıkarım zamanı ölçüldü.
+    \item Değerlendirme metrikleri: Accuracy, Recall, Precision, Sensitivity, Specificity, F-Score, AUC.
+    \item Sonuçlar tablo ve grafiklerle sunuldu.
+\end{itemize}
+
+\section{Sonuçlar}
+
+\subsection{Metrik Sonuçları}
+
+\begin{table}[H]
+\centering
+\caption{Modellere Göre Başarı Metrikleri}
+\begin{tabular}{lcccccccc}
+\toprule
+Model & Acc. & Prec. & Recall & Sens. & Spec. & F1 & AUC \\
+\midrule
+AST      & 0.9211 & 0.9333 & 0.9250 & 0.9250 & 0.9333 & 0.9213 & 0.9983  \\
+Wav2Vec2 & 0.9211 & 0.9333 & 0.9214 & 0.9214 & 0.9333 & 0.9193 & 1.0  \\
+SEW      & 0.7632 & 0.8267 & 0.7679 & 0.7679 & 0.8267 & 0.7684 & 0.9570  \\
+Hubert   & 0.8158 & 0.8791 & 0.8143 & 0.8143 & 0.8791 & 0.8188 & 0.9416  \\
+Data2Vec & 0.8158 & 0.6971 & 0.6786 & 0.6786 & 0.6971 & 0.6738 & 0.0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\FloatBarrier
+
+\subsection{Karmaşıklık Matrisi (Confusion Matrix)}
+Her model için karmaşıklık matrisi aşağıda verilmiştir:
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.3\textwidth}
+        \includegraphics[width=\textwidth]{ASTConfusionMatrix.PNG}
+        \caption{AST}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.3\textwidth}
+        \includegraphics[width=\textwidth]{HubertCONFUSİONMATRİX.PNG}
+        \caption{Hubert}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.3\textwidth}
+        \includegraphics[width=\textwidth]{Data2vecConfusionMATRİX.PNG}
+        \caption{Data2Vec}
+    \end{subfigure}
+    
+    \vspace{0.3cm}
+    
+    \begin{subfigure}[b]{0.3\textwidth}
+        \includegraphics[width=\textwidth]{Wav2vecCONFUSİONMATRİX.PNG}
+        \caption{Wav2Vec2}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.3\textwidth}
+        \includegraphics[width=\textwidth]{SewCONFUSİONMATRİX.PNG}
+        \caption{SEW}
+    \end{subfigure}
+    \caption{Confusion matrices for all models.}
+\end{figure}
+
+\FloatBarrier
+
+\subsection{ROC Eğrileri ve AUC}
+Her model ve sınıf için ROC eğrileri ve AUC değerleri aşağıda sunulmuştur:
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.3\textwidth}
+        \includegraphics[width=\textwidth]{ASTRoc.PNG}
+        \caption{AST}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.3\textwidth}
+        \includegraphics[width=\textwidth]{HubertROCCURVE.PNG}
+        \caption{Hubert}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.3\textwidth}
+        \includegraphics[width=\textwidth]{Data2vecROCCURVE.PNG}
+        \caption{Data2Vec}
+    \end{subfigure}
+    
+    \vspace{0.3cm}
+    
+    \begin{subfigure}[b]{0.3\textwidth}
+        \includegraphics[width=\textwidth]{Wav2vecROCCURVE.PNG}
+        \caption{Wav2Vec2}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.3\textwidth}
+        \includegraphics[width=\textwidth]{SewROCCURVE.PNG}
+        \caption{SEW}
+    \end{subfigure}
+    \caption{ROC curves for all models.}
+\end{figure}
+
+\FloatBarrier
+
+\subsection{Eğitim ve Test Loss Grafikleri}
+Her model için epoch bazında loss grafikleri:
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.3\textwidth}
+        \includegraphics[width=\textwidth]{ASTLoss.PNG}
+        \caption{AST}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.3\textwidth}
+        \includegraphics[width=\textwidth]{HubertLoss.PNG}
+        \caption{Hubert}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.3\textwidth}
+        \includegraphics[width=\textwidth]{Data2vecLoss.PNG}
+        \caption{Data2Vec}
+    \end{subfigure}
+    
+    \vspace{0.3cm}
+    
+    \begin{subfigure}[b]{0.3\textwidth}
+        \includegraphics[width=\textwidth]{Wav2vecLOSS.PNG}
+        \caption{Wav2Vec2}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.3\textwidth}
+        \includegraphics[width=\textwidth]{SewLOSS.PNG}
+        \caption{SEW}
+    \end{subfigure}
+    \caption{Loss graphics for all models.}
+\end{figure}
+
+\FloatBarrier
+
+\section{Tartışma ve Yorumlar}
+\begin{itemize}
+    \item Hangi model hangi sınıfta daha başarılı oldu?
+    \item Dengesiz veri, overfitting, modelin avantaj/dezavantajları.
+    \item Eğitim ve çıkarım sürelerinin karşılaştırılması.
+    \item Gerçek hayatta uygulanabilirlik ve öneriler.
+\end{itemize}
+
+\section{Sonuç}
+Bu çalışmada, beş farklı solunum sesi sınıfı üzerinde modern derin öğrenme modelleri karşılaştırılmıştır. Sonuçlar, [en iyi modelin adı] modelinin genel olarak en yüksek başarıyı sağladığını göstermektedir. Gelecekte, veri setinin büyütülmesi ve farklı özniteliklerin denenmesi planlanmaktadır.
+
+\section*{Kaynaklar}
+\begin{thebibliography}{1}
+\bibitem{gong2021ast} Y. Gong, Y. A. Chung, and J. Glass, ``AST: Audio Spectrogram Transformer,'' arXiv preprint arXiv:2104.01778, 2021.
+\bibitem{baevski2020wav2vec} A. Baevski, H. Zhou, A. Mohamed, and M. Auli, ``wav2vec 2.0: A framework for self-supervised learning of speech representations,'' NeurIPS, 2020.
+\bibitem{bao2021sew} H. Bao et al., ``SEW: Self-Supervised Learning for Speech with Efficient Conformer,'' arXiv preprint arXiv:2110.06811, 2021.
+\bibitem{chen2022beats} S. Chen et al., ``BEATs: Audio Pre-Training with Acoustic Tokenizers,'' arXiv preprint arXiv:2212.09058, 2022.
+\bibitem{baevski2022data2vec} A. Baevski et al., ``data2vec: A General Framework for Self-supervised Learning in Speech, Vision and Language,'' arXiv preprint arXiv:2202.03555, 2022.
+\end{thebibliography}
+
+\section*{Ekler}
+\subsection*{Ek-1: Web Scraping Örnek Kodları}
+\begin{lstlisting}
+def download_audio_segment(link, start_time, end_time, output_path):
+    temp_dir = 'temp'
+    if not os.path.exists(temp_dir):
+        os.makedirs(temp_dir)
+    
+    for file in os.listdir(temp_dir):
+        file_path = os.path.join(temp_dir, file)
+        try:
+            if os.path.isfile(file_path):
+                os.remove(file_path)
+        except Exception as e:
+            print(f"Temp dosyası silinirken hata: {e}")
+    
+    video_id = None
+    if 'youtube.com' in link:
+        match = re.search(r'v=([^&]+)', link)
+        if match:
+            video_id = match.group(1)
+    elif 'youtu.be' in link:
+        video_id = link.split('/')[-1]
+    
+    if not video_id:
+        import hashlib
+        video_id = hashlib.md5(link.encode()).hexdigest()[:10]
+    
+    ydl_opts = {
+        'format': 'bestaudio/best',
+        'outtmpl': os.path.join(temp_dir, f'{video_id}.%(ext)s'),
+        'quiet': False,  # Set to False to see download progress
+        'no_warnings': False,
+        'postprocessors': [{
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': 'wav',
+            'preferredquality': '192',
+        }],
+    }
+    
+    print(f"Video indiriliyor: {link}")
+\end{lstlisting}
+
+\subsection*{Ek-2: Google Drive Linki}
+Veri setine erişmek için: \href{https://drive.google.com/drive/u/1/folders/1XADkuWGJVvxvtqV9zuuSkaGYZg5Gixzo}{Veri seti Google Drive linki}
+
+\end{document}
